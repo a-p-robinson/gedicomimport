@@ -1,3 +1,5 @@
+/home/apr/Analysis/GeDicomImport/fixdicom.py
+
 import dicom
 
 ds = dicom.read_file("TOMOLiver_EM001_DS.dcm")
