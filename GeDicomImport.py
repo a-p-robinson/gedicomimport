@@ -187,7 +187,7 @@ print ds[0x54,0x12].value[0][0x54,0x18].value
 
 #----------------------------------------
 # Swap the array data
-ds.PixelData = newPixelData.tostring()
+ds.PixelData = newPixelData.tostring() # Have to write as raw data
 #----------------------------------------
 
 #----------------------------------------
