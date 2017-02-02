@@ -7,7 +7,7 @@
 #                                                                                         #
 # Usage:                                                                                  #
 #  python GeDicomImport -d new_dataset_name original_dicom_filename new_dicom_filename    #
-#  (python GeDicomImport -h for full list of options)                                      #
+#  (python GeDicomImport -h for full list of options)                                     #
 #                                                                                         #
 # Requirements:                                                                           #
 #  [pydicom] sudo pip install pydicom                                                     #
@@ -125,7 +125,7 @@ def changeDataName(datasetname, uid_offset=10):
 def changeEnergyWindow(energy, energy_number=7):
 
     ###########################################################################################
-    # [EM1] (0011, 1016) [Energy Number]                     SL: 1 -> 4 (or whatever is free) #                                                                   #
+    # [EM1] (0011, 1016) [Energy Number]                     SL: 1 -> 4 (or whatever is free) #
     # [EM1] (0028, 1050) Window Center                       DS: '22.500000'  -> ???          #
     # [EM1] (0028, 1051) Window Width                        DS: '45.000000'  -> ???          #
     # [EM1] (0054, 0014) Energy Window Lower Limit           DS: '39.84'      -> low          #
