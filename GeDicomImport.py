@@ -143,7 +143,7 @@ def changeEnergyWindow(energy, energy_number=7):
     ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = float(energy[0])
     ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = float(energy[1])
     ds[0x54,0x12].value[0][0x54,0x18].value += "-" + str(energy_number)
-    ds[0x11,0x1016].value = energy_number
+    ds[0x11,0x1016].value = int(energy_number)
 #----------------------
 
 #----------------------
@@ -183,7 +183,9 @@ else:
     changeDataName(args.datasetname)
 
 # Modifiy the energy window if requested
-if args.energywindow:
+if args.energywindow and args.uid:
+    changeEnergyWindow(args.energywindow, args.uid)
+elif args.energywindow:
     changeEnergyWindow(args.energywindow)
 
 # Change the pixel data is supplied
