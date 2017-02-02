@@ -5,9 +5,79 @@
 #                                                                       #
 # Modify an export GE Xelris Dicom file to allow it to be read back in. #
 #                                                                       #
+# Requirements:                                                         #
+#  sudo pip install pydicom                                             #
+#                                                                       #
 #########################################################################
 
 import dicom # http://pydicom.readthedocs.io/en/stable/ref_guide.html
+from random import randint
+import re
+import numpy as np
+
+
+#----------------------
+# Read the dimensions and datafile from an interfile header
+def readInterFileHeader(inputFileName):
+    inFile = open(inputFileName, 'r')
+    for line in inFile:
+        #print line
+        if re.search("matrix size \[1\]", line):
+            line = line.rstrip('\n\r')
+            words = re.split("=", line)
+            x = words[1]
+        if re.search("matrix size \[2\]", line):
+            line = line.rstrip('\n\r')
+            words = re.split("=", line)
+            y =  words[1]
+        if re.search("number of projections", line):
+            line = line.rstrip('\n\r')
+            words = re.split("=", line)
+            z =  words[1]
+        if re.search("name of data file", line):
+            line = line.rstrip('\n\r')
+            words = re.split("=", line)
+            dataFile =  words[1]
+        if re.search("number format", line):
+            line = line.rstrip('\n\r')
+            words = re.split("=", line)
+            if re.match("unsigned integer", words[1]):
+                dtype = np.uint16
+            if re.match("signed integer", words[1]):
+                dtype = np.int16
+
+    inFile.close()
+
+    return [int(x),int(y),int(z)], dataFile, dtype
+#----------------------
+
+#----------------------
+# Read the binary data from an interfile
+def readInterFileData(dataFileName, PixelDims, dtype):
+
+    # Load dimensions based on the number of rows, columns, and slices (along the Z axis)
+    #ConstPixelDims = (int(RefDs.Rows), int(RefDs.Columns), len(lstFilesDCM))
+
+    ArrayRaw = np.fromfile(dataFileName,dtype=dtype)
+    print ArrayRaw.size
+    ArrayRaw3D = ArrayRaw.reshape(PixelDims, order='C') # Reshape the array into 3D
+    #ArrayRaw3D = ArrayRaw3D[:,:,::-1]                        # Flip the array in Z
+    #ArrayRaw3D = numpy.rot90(ArrayRaw3D)                     # Rotate 90deg CCW
+
+    return ArrayRaw3D
+
+#----------------------
+
+
+#----------------------
+# Read in the inter file data to replace the pixel data
+#
+dimensions, dataFile, dtype = readInterFileHeader("/home/apr/Analysis/GeDicomImport/TestData/InterFile/EM1_LEHR-SinglesXZ.hdr")
+print dimensions
+print dataFile
+
+newPixelData = readInterFileData("/home/apr/Analysis/GeDicomImport/TestData/InterFile/" + dataFile, dimensions, dtype)
+#----------------------
 
 # File to read in
 ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_EM001_DS.dcm")
@@ -15,7 +85,8 @@ ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLi
 #ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_SC2001_DS.dcm")
 
 # Dump the data to the screen
-print ds
+#print ds
+#print ds.pixel_array
 
 # Clone EM with a differnet 'ID'
 ############################################################################################################################################################
@@ -44,18 +115,18 @@ print ds[0x33,0x1107].value
 # Change Values:
 
 # Time
-time_offset = 30.0
-ds[0x08,0x0013].value = str(float(ds[0x08,0x0013].value) + time_offset)
+time_offset = 40.0
+ds[0x08,0x0013].value = str(float(ds[0x08,0x0013].value) + time_offset + randint(0,9))
 
 # UID
-uid_offset = 8
+uid_offset = 7
 ds[0x08,0x0018].value += '.'
 ds[0x08,0x0018].value += str(uid_offset)
 ds[0x33,0x1107].value += '.'
 ds[0x33,0x1107].value += str(uid_offset)
 
 # Description
-data_description = 'TOMO Liver_NewE'
+data_description = 'TOMO Liver_NewE_2'
 ds[0x11,0x1012].value = data_description
 ds[0x11,0x1050].value = data_description
 ds[0x11,0x1030].value = data_description
@@ -95,9 +166,9 @@ print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
 print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
 print ds[0x54,0x12].value[0][0x54,0x18].value
 
-lower_e = 100.0
-upper_e = 200.0
-energy_name = 'Y90_test'
+lower_e = 20.0
+upper_e = 40.0
+energy_name = 'Y90_test2'
 
 ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = lower_e
 ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = upper_e
@@ -114,10 +185,15 @@ print ds[0x54,0x12].value[0][0x54,0x18].value
 
 #----------------------------------------
 
+#----------------------------------------
+# Swap the array data
+ds.PixelData = newPixelData.tostring()
+#----------------------------------------
 
+#----------------------------------------
 # Save file
-ds.save_as("test_newE.dcm")
-
+ds.save_as("test_pixel_data.dcm")
+#----------------------------------------
 
 # ds[0x11,0x1012].value = 'EM_test2'
 # print ds[0x11,0x1012].value
