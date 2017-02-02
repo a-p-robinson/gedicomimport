@@ -1,27 +1,30 @@
-#########################################################################
-# GeDicomImport.py                                                      #
-# 30/01/17                                                              #
-# andrew.robinson@npl.co.uk                                             #
-#                                                                       #
-# Modify an export GE Xelris Dicom file to allow it to be read back in. #
-#                                                                       #
-# Requirements:                                                         #
-#  sudo pip install pydicom                                             #
-#                                                                       #
-#########################################################################
+###########################################################################################
+# GeDicomImport.py                                                                        #
+# 30/01/17                                                                                #
+# andrew.robinson@npl.co.uk                                                               #
+#                                                                                         #
+# Import data into GE Xeleris system based on an exisiting GE Dicom file                  #
+#                                                                                         #
+# Usage:                                                                                  #
+#  python GeDicomImport -d new_dataset_name original_dicom_filename new_dicom_filename    #
+#  (python GeDicomImport -h for full list of options)                                      #
+#                                                                                         #
+# Requirements:                                                                           #
+#  [pydicom] sudo pip install pydicom                                                     #
+#   http://pydicom.readthedocs.io/en/stable/                                              #
+###########################################################################################
 
-import dicom # http://pydicom.readthedocs.io/en/stable/ref_guide.html
-from random import randint
+import dicom
+import argparse
 import re
 import numpy as np
-
+from random import randint
 
 #----------------------
-# Read the dimensions and datafile from an interfile header
+# Read the data filename, matrix dimensions and data type from an interfile header
 def readInterFileHeader(inputFileName):
     inFile = open(inputFileName, 'r')
     for line in inFile:
-        #print line
         if re.search("matrix size \[1\]", line):
             line = line.rstrip('\n\r')
             words = re.split("=", line)
@@ -52,37 +55,76 @@ def readInterFileHeader(inputFileName):
 #----------------------
 
 #----------------------
-# Read the binary data from an interfile
+# Read the binary data from an interfile into a numpy array
 def readInterFileData(dataFileName, PixelDims, dtype):
 
-    # Load dimensions based on the number of rows, columns, and slices (along the Z axis)
-    #ConstPixelDims = (int(RefDs.Rows), int(RefDs.Columns), len(lstFilesDCM))
-
     ArrayRaw = np.fromfile(dataFileName,dtype=dtype)
-    print ArrayRaw.size
     ArrayRaw3D = ArrayRaw.reshape(PixelDims, order='C') # Reshape the array into 3D
     #ArrayRaw3D = ArrayRaw3D[:,:,::-1]                        # Flip the array in Z
     #ArrayRaw3D = numpy.rot90(ArrayRaw3D)                     # Rotate 90deg CCW
 
     return ArrayRaw3D
-
 #----------------------
 
+#----------------------
+# Read in the matrix data from an interfile
+def readIFmatrix(filename):
+
+    print "Reading Interfile: " + filename
+    dimensions, dataFile, dtype = readInterFileHeader(filename)
+    words = re.split("(/)", filename)
+    datafilename = ''.join(words[1:-1]) + dataFile
+
+    print "Matrix: "
+    print dimensions
+    print "Data Type: " 
+    print dtype
+    print "Binary data file: " + datafilename
+    
+    return readInterFileData(datafilename, dimensions, dtype)
+#----------------------
 
 #----------------------
-# Read in the inter file data to replace the pixel data
-#
-dimensions, dataFile, dtype = readInterFileHeader("/home/apr/Analysis/GeDicomImport/TestData/InterFile/EM1_LEHR-SinglesXZ.hdr")
-print dimensions
-print dataFile
-
-newPixelData = readInterFileData("/home/apr/Analysis/GeDicomImport/TestData/InterFile/" + dataFile, dimensions, dtype)
+# Change the dataname and UID of the dicom file
+def changeDataName(dicomfile):
+    return 1
 #----------------------
+
+#----------------------
+# Change the energy window of the dicom file
+def changeEnergyWindow(dicomfile):
+    return 1
+#----------------------
+
+#----------------------
+# Change the pixel data of the dicom file
+def changePixelData(dicomfile):
+    return 1
+#----------------------
+
+#---------------------------------------------------
+# Parse the arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
+parser.add_argument("outputfile", help="Modified DICOM file")
+
+parser.add_argument("-d", "--datasetname", help="New dataset name")
+parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
+parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
+
+args = parser.parse_args()
+print args
+
+#original_file = args.
+#patient = args.patient
+#---------------------------------------------------
+
+
+newPixelData = readIFmatrix("/home/apr/Analysis/GeDicomImport/TestData/InterFile/EM1_LEHR-SinglesXZ.hdr")
 
 # File to read in
 ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_EM001_DS.dcm")
-#ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_SC1001_DS.dcm")
-#ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_SC2001_DS.dcm")
+
 
 # Dump the data to the screen
 #print ds
@@ -114,9 +156,9 @@ print ds[0x33,0x1107].value
 #----------------------------------------
 # Change Values:
 
-# Time
-time_offset = 40.0
-ds[0x08,0x0013].value = str(float(ds[0x08,0x0013].value) + time_offset + randint(0,9))
+# # Time
+# time_offset = 40.0
+# ds[0x08,0x0013].value = str(float(ds[0x08,0x0013].value) + time_offset + randint(0,9))
 
 # UID
 uid_offset = 7
@@ -126,13 +168,13 @@ ds[0x33,0x1107].value += '.'
 ds[0x33,0x1107].value += str(uid_offset)
 
 # Description
-data_description = 'TOMO Liver_NewE_2'
+data_description = 'TOMO Liver_NameUID'
 ds[0x11,0x1012].value = data_description
 ds[0x11,0x1050].value = data_description
 ds[0x11,0x1030].value = data_description
 
-# Energy Number
-ds[0x11,0x1016].value = uid_offset
+# # Energy Number
+# ds[0x11,0x1016].value = uid_offset
 #----------------------------------------
 
 print "-----------------"
@@ -147,52 +189,52 @@ print ds[0x11,0x1030].value
 print ds[0x11,0x1050].value
 print ds[0x33,0x1107].value
 
-#----------------------------------------
-# Modify the energy window
-##################################################################################
-# [EM1] (0028, 1050) Window Center                       DS: '22.500000'  -> ??? #
-# [EM1] (0028, 1051) Window Width                        DS: '45.000000'  -> ??? #
-# [EM1] (0054, 0014) Energy Window Lower Limit           DS: '39.84'      -> 200 #
-# [EM1] (0054, 0015) Energy Window Upper Limit           DS: '126.16'     -> 300 #
-# [EM1] (0054, 0018) Energy Window Name                  SH: 'Y90_EM'     -> new #
-##################################################################################
+# #----------------------------------------
+# # Modify the energy window
+# ##################################################################################
+# # [EM1] (0028, 1050) Window Center                       DS: '22.500000'  -> ??? #
+# # [EM1] (0028, 1051) Window Width                        DS: '45.000000'  -> ??? #
+# # [EM1] (0054, 0014) Energy Window Lower Limit           DS: '39.84'      -> 200 #
+# # [EM1] (0054, 0015) Energy Window Upper Limit           DS: '126.16'     -> 300 #
+# # [EM1] (0054, 0018) Energy Window Name                  SH: 'Y90_EM'     -> new #
+# ##################################################################################
 
-print "-----------------"
-print 'Values to change:'
-print "-----------------"
-print ds[0x28,0x1050].value
-print ds[0x28,0x1051].value
-print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
-print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
-print ds[0x54,0x12].value[0][0x54,0x18].value
+# print "-----------------"
+# print 'Values to change:'
+# print "-----------------"
+# print ds[0x28,0x1050].value
+# print ds[0x28,0x1051].value
+# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
+# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
+# print ds[0x54,0x12].value[0][0x54,0x18].value
 
-lower_e = 20.0
-upper_e = 40.0
-energy_name = 'Y90_test2'
+# lower_e = 20.0
+# upper_e = 40.0
+# energy_name = 'Y90_test2'
 
-ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = lower_e
-ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = upper_e
-ds[0x54,0x12].value[0][0x54,0x18].value = energy_name
+# ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = lower_e
+# ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = upper_e
+# ds[0x54,0x12].value[0][0x54,0x18].value = energy_name
 
-print "-----------------"
-print 'New Values:'
-print "-----------------"
-print ds[0x28,0x1050].value
-print ds[0x28,0x1051].value
-print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
-print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
-print ds[0x54,0x12].value[0][0x54,0x18].value
+# print "-----------------"
+# print 'New Values:'
+# print "-----------------"
+# print ds[0x28,0x1050].value
+# print ds[0x28,0x1051].value
+# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
+# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
+# print ds[0x54,0x12].value[0][0x54,0x18].value
 
-#----------------------------------------
+# #----------------------------------------
 
-#----------------------------------------
-# Swap the array data
-ds.PixelData = newPixelData.tostring() # Have to write as raw data
-#----------------------------------------
+# #----------------------------------------
+# # Swap the array data
+# ds.PixelData = newPixelData.tostring() # Have to write as raw data
+# #----------------------------------------
 
 #----------------------------------------
 # Save file
-ds.save_as("test_pixel_data.dcm")
+ds.save_as("test_name_uid.dcm")
 #----------------------------------------
 
 # ds[0x11,0x1012].value = 'EM_test2'
