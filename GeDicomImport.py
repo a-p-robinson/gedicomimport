@@ -73,7 +73,7 @@ def readIFmatrix(filename):
     print "Reading Interfile: " + filename
     dimensions, dataFile, dtype = readInterFileHeader(filename)
     words = re.split("(/)", filename)
-    datafilename = ''.join(words[1:-1]) + dataFile
+    datafilename = ''.join(words[0:-1]) + dataFile
 
     print "Matrix: "
     print dimensions
@@ -86,20 +86,75 @@ def readIFmatrix(filename):
 
 #----------------------
 # Change the dataname and UID of the dicom file
-def changeDataName(dicomfile):
-    return 1
+def changeDataName(datasetname):
+
+    ############################################################################################################################################################
+    # [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
+    # [EM1] (0008, 0018) SOP Instance UID                    UI: 1.2.840.113619.2.280.2.1.13072016173700324.423137180 -> .3 (or what ever is clear from SC)    #
+    # [EM1] (0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'                                                                               #
+    # [EM1] (0011, 1030) [Picture Object Name]               LO: 'TOMO Liver_EM'                                                                               #
+    # [EM1] (0011, 1050) [Where Object Name]                 LO: 'TOMO Liver_EM'                                                                               #
+    # [EM1] (0033, 1107) [Orig SOP Instance UID]             LO: '1.2.840.113619.2.280.2.1.13072016173700324.423137180' - > .3 (or what ever is clear from SC) #
+    ############################################################################################################################################################
+
+    uid_offset = 10 # Default value to add to UID + random number
+    new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset + randint(0,9))
+
+    print "\n|Dataset Name|"
+
+    print ds[0x08,0x0018].value + " --> " + new_uid
+    print ds[0x33,0x1107].value + " --> " + new_uid
+
+    print ds[0x11,0x1012].value + " --> " + datasetname
+    print ds[0x11,0x1030].value + " --> " + datasetname
+    print ds[0x11,0x1050].value + " --> " + datasetname
+
+    # Change UIDs
+    ds[0x08,0x0018].value = new_uid
+    ds[0x33,0x1107].value = new_uid
+
+    # Change datset name
+    ds[0x11,0x1012].value = datasetname
+    ds[0x11,0x1050].value = datasetname
+    ds[0x11,0x1030].value = datasetname
 #----------------------
 
 #----------------------
 # Change the energy window of the dicom file
-def changeEnergyWindow(dicomfile):
-    return 1
+#  Energy window number can be set manually to avoid overlapping
+def changeEnergyWindow(energy, energy_number=7):
+
+    ###########################################################################################
+    # [EM1] (0011, 1016) [Energy Number]                     SL: 1 -> 4 (or whatever is free) #                                                                   #
+    # [EM1] (0028, 1050) Window Center                       DS: '22.500000'  -> ???          #
+    # [EM1] (0028, 1051) Window Width                        DS: '45.000000'  -> ???          #
+    # [EM1] (0054, 0014) Energy Window Lower Limit           DS: '39.84'      -> low          #
+    # [EM1] (0054, 0015) Energy Window Upper Limit           DS: '126.16'     -> hi           #
+    # [EM1] (0054, 0018) Energy Window Name                  SH: 'Y90_EM'     -> new          #
+    ###########################################################################################
+
+    print "\n|Energy Window|"
+
+    print str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value) + " --> " + energy[0]
+    print str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value) + " --> " + energy[1]
+    print ds[0x54,0x12].value[0][0x54,0x18].value + " --> " + ds[0x54,0x12].value[0][0x54,0x18].value + "-" + str(energy_number)
+    print str(ds[0x11,0x1016].value) + " --> " + str(energy_number)
+
+    ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = float(energy[0])
+    ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = float(energy[1])
+    ds[0x54,0x12].value[0][0x54,0x18].value += "-" + str(energy_number)
+    ds[0x11,0x1016].value = energy_number
 #----------------------
 
 #----------------------
 # Change the pixel data of the dicom file
-def changePixelData(dicomfile):
-    return 1
+def changePixelData(interfile):
+
+    print "\n|Pixel Data|"
+    newPixelData = readIFmatrix(interfile)
+
+    # Swap the array data
+    ds.PixelData = newPixelData.tostring() # Have to write as raw data
 #----------------------
 
 #---------------------------------------------------
@@ -113,153 +168,28 @@ parser.add_argument("-e", "--energywindow", help="Low and High energy window val
 parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
 
 args = parser.parse_args()
-print args
-
-#original_file = args.
-#patient = args.patient
 #---------------------------------------------------
 
+#---------------------------------------------------
+# Process the file
+print "\nReading DICOM file: " + args.dicomfile
+ds = dicom.read_file(args.dicomfile)
 
-newPixelData = readIFmatrix("/home/apr/Analysis/GeDicomImport/TestData/InterFile/EM1_LEHR-SinglesXZ.hdr")
+# Change the dataset name
+changeDataName(args.datasetname)
 
-# File to read in
-ds = dicom.read_file("/home/apr/Analysis/GeDicomImport/TestData/CATIE_90Y/TOMOLiver_EM001_DS.dcm")
+# Modifiy the energy window if requested
+if args.energywindow:
+    changeEnergyWindow(args.energywindow)
 
+# Change the pixel data is supplied
+if args.interfile:
+    changePixelData(args.interfile)
 
-# Dump the data to the screen
-#print ds
-#print ds.pixel_array
-
-# Clone EM with a differnet 'ID'
-############################################################################################################################################################
-# [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
-# [EM1] (0008, 0018) SOP Instance UID                    UI: 1.2.840.113619.2.280.2.1.13072016173700324.423137180 -> .3 (or what ever is clear from SC)    #
-# [EM1] (0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'                                                                               #
-# [EM1] (0011, 1016) [Energy Number]                     SL: 1 -> 4 (or whatevr is free)                                                                   #
-# [EM1] (0011, 1030) [Picture Object Name]               LO: 'TOMO Liver_EM'                                                                               #
-# [EM1] (0011, 1050) [Where Object Name]                 LO: 'TOMO Liver_EM'                                                                               #
-# [EM1] (0033, 1107) [Orig SOP Instance UID]             LO: '1.2.840.113619.2.280.2.1.13072016173700324.423137180' - > .3 (or what ever is clear from SC) #
-############################################################################################################################################################
-
-print "-----------------"
-print 'Values to change:'
-print "-----------------"
-
-print ds[0x08,0x0013].value
-print ds[0x08,0x0018].value
-print ds[0x11,0x1012].value
-print ds[0x11,0x1016].value
-print ds[0x11,0x1030].value
-print ds[0x11,0x1050].value
-print ds[0x33,0x1107].value
-
-#----------------------------------------
-# Change Values:
-
-# # Time
-# time_offset = 40.0
-# ds[0x08,0x0013].value = str(float(ds[0x08,0x0013].value) + time_offset + randint(0,9))
-
-# UID
-uid_offset = 7
-ds[0x08,0x0018].value += '.'
-ds[0x08,0x0018].value += str(uid_offset)
-ds[0x33,0x1107].value += '.'
-ds[0x33,0x1107].value += str(uid_offset)
-
-# Description
-data_description = 'TOMO Liver_NameUID'
-ds[0x11,0x1012].value = data_description
-ds[0x11,0x1050].value = data_description
-ds[0x11,0x1030].value = data_description
-
-# # Energy Number
-# ds[0x11,0x1016].value = uid_offset
-#----------------------------------------
-
-print "-----------------"
-print 'New Values:'
-print "-----------------"
-
-print ds[0x08,0x0013].value
-print ds[0x08,0x0018].value
-print ds[0x11,0x1012].value
-print ds[0x11,0x1016].value
-print ds[0x11,0x1030].value
-print ds[0x11,0x1050].value
-print ds[0x33,0x1107].value
-
-# #----------------------------------------
-# # Modify the energy window
-# ##################################################################################
-# # [EM1] (0028, 1050) Window Center                       DS: '22.500000'  -> ??? #
-# # [EM1] (0028, 1051) Window Width                        DS: '45.000000'  -> ??? #
-# # [EM1] (0054, 0014) Energy Window Lower Limit           DS: '39.84'      -> 200 #
-# # [EM1] (0054, 0015) Energy Window Upper Limit           DS: '126.16'     -> 300 #
-# # [EM1] (0054, 0018) Energy Window Name                  SH: 'Y90_EM'     -> new #
-# ##################################################################################
-
-# print "-----------------"
-# print 'Values to change:'
-# print "-----------------"
-# print ds[0x28,0x1050].value
-# print ds[0x28,0x1051].value
-# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
-# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
-# print ds[0x54,0x12].value[0][0x54,0x18].value
-
-# lower_e = 20.0
-# upper_e = 40.0
-# energy_name = 'Y90_test2'
-
-# ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = lower_e
-# ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = upper_e
-# ds[0x54,0x12].value[0][0x54,0x18].value = energy_name
-
-# print "-----------------"
-# print 'New Values:'
-# print "-----------------"
-# print ds[0x28,0x1050].value
-# print ds[0x28,0x1051].value
-# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value
-# print ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value
-# print ds[0x54,0x12].value[0][0x54,0x18].value
-
-# #----------------------------------------
-
-# #----------------------------------------
-# # Swap the array data
-# ds.PixelData = newPixelData.tostring() # Have to write as raw data
-# #----------------------------------------
-
-#----------------------------------------
 # Save file
-ds.save_as("test_name_uid.dcm")
-#----------------------------------------
-
-# ds[0x11,0x1012].value = 'EM_test2'
-# print ds[0x11,0x1012].value
-
-# print ds[0x11,0x1030].value
-# ds[0x11,0x1030].value = 'EM_test2'
-# print ds[0x11,0x1030].value
-
-# print ds[0x11,0x1050].value
-# ds[0x11,0x1050].value = 'EM_test2'
-# print ds[0x11,0x1050].value
-
-
-# # print ds[0x8,0x103e].value
-# # ds[0x8,0x103e].value = 'EM_test'
-# # print ds[0x8,0x103e].value
-
-
-# # #(0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'
-# # #(0008, 103e) Series Description                  LO: 'TOMO Liver'
-
-# #(0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'
-# #(0011, 1030) [Picture Object Name]               LO: 'TOMO Liver_EM'
-# #(0011, 1050) [Where Object Name]                 LO: 'TOMO Liver_EM'
+print "\nSaving file: " + args.outputfile
+ds.save_as(args.outputfile)
+#---------------------------------------------------
 
 
 
