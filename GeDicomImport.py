@@ -86,7 +86,7 @@ def readIFmatrix(filename):
 
 #----------------------
 # Change the dataname and UID of the dicom file
-def changeDataName(datasetname):
+def changeDataName(datasetname, uid_offset=10):
 
     ############################################################################################################################################################
     # [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
@@ -97,8 +97,8 @@ def changeDataName(datasetname):
     # [EM1] (0033, 1107) [Orig SOP Instance UID]             LO: '1.2.840.113619.2.280.2.1.13072016173700324.423137180' - > .3 (or what ever is clear from SC) #
     ############################################################################################################################################################
 
-    uid_offset = 10 # Default value to add to UID + random number
-    new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset + randint(0,9))
+    #new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset + randint(0,9)) # Add random number to UID
+    new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset)
 
     print "\n|Dataset Name|"
 
@@ -166,6 +166,7 @@ parser.add_argument("outputfile", help="Modified DICOM file")
 parser.add_argument("-d", "--datasetname", help="New dataset name")
 parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
 parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
+parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
 
 args = parser.parse_args()
 #---------------------------------------------------
@@ -176,7 +177,10 @@ print "\nReading DICOM file: " + args.dicomfile
 ds = dicom.read_file(args.dicomfile)
 
 # Change the dataset name
-changeDataName(args.datasetname)
+if args.uid:
+    changeDataName(args.datasetname, args.uid)
+else:
+    changeDataName(args.datasetname)
 
 # Modifiy the energy window if requested
 if args.energywindow:
