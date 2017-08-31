@@ -1,0 +1,8 @@
+# svn directory - maybe this was version controlled?
+.svn/
+
+# Compilation stuff
+*.o
+
+# Emacs autosave
+*~

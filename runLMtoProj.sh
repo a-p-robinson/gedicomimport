@@ -1,0 +1,26 @@
+#!/bin.bash
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root CREATE 0-500 0.000 0.500
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 40-126 0.040 0.126
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 60-125 0.060 0.125
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 60-145 0.060 0.145
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 70-170 0.070 0.170
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 80-180 0.080 0.180
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 90-190 0.090 0.190
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 100-200 0.100 0.200
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 100-160 0.100 0.160
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 80-140 0.080 0.140
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 80-160 0.080 0.160
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 90-125 0.090 0.125
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 60-160 0.060 0.160
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE 60-400 0.060 0.400
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split40-50 0.040 0.050
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split50-60 0.050 0.060
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split60-70 0.060 0.070
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split70-80 0.070 0.080
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split80-90 0.080 0.090
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split90-100 0.090 0.100
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split100-110 0.100 0.110
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split110-120 0.110 0.120
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split120-140 0.120 0.140
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split140-160 0.140 0.160
+bin/lmToProj Catie_listmode.root projections_02-02-2017.root UPDATE split160-180 0.160 0.180
