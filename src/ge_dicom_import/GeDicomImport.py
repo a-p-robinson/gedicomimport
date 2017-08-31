@@ -162,45 +162,49 @@ def changePixelData(interfile):
     ds.PixelData = newPixelData.tostring() # Have to write as raw data
 #----------------------
 
-#---------------------------------------------------
-# Parse the arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
-parser.add_argument("outputfile", help="Modified DICOM file")
+def main():
+    #---------------------------------------------------
+    # Parse the arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
+    parser.add_argument("outputfile", help="Modified DICOM file")
 
-parser.add_argument("-d", "--datasetname", help="New dataset name")
-parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
-parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
-parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
+    parser.add_argument("-d", "--datasetname", help="New dataset name")
+    parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
+    parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
+    parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
 
-args = parser.parse_args()
-#---------------------------------------------------
+    args = parser.parse_args()
+    #---------------------------------------------------
 
-#---------------------------------------------------
-# Process the file
-print "\nReading DICOM file: " + args.dicomfile
-ds = dicom.read_file(args.dicomfile)
+    #---------------------------------------------------
+    # Process the file
+    print "\nReading DICOM file: " + args.dicomfile
+    ds = dicom.read_file(args.dicomfile)
 
-# Change the dataset name
-if args.uid:
-    changeDataName(args.datasetname, args.uid)
-else:
-    changeDataName(args.datasetname)
+    # Change the dataset name
+    if args.uid:
+        changeDataName(args.datasetname, args.uid)
+    else:
+        changeDataName(args.datasetname)
 
-# Modifiy the energy window if requested
-if args.energywindow and args.uid:
-    changeEnergyWindow(args.energywindow, args.uid)
-elif args.energywindow:
-    changeEnergyWindow(args.energywindow)
+    # Modifiy the energy window if requested
+    if args.energywindow and args.uid:
+        changeEnergyWindow(args.energywindow, args.uid)
+    elif args.energywindow:
+        changeEnergyWindow(args.energywindow)
 
-# Change the pixel data is supplied
-if args.interfile:
-    changePixelData(args.interfile)
+    # Change the pixel data if supplied
+    if args.interfile:
+        changePixelData(args.interfile)
 
-# Save file
-print "\nSaving file: " + args.outputfile
-ds.save_as(args.outputfile)
-#---------------------------------------------------
+    # Save file
+    print "\nSaving file: " + args.outputfile
+    ds.save_as(args.outputfile)
+    #---------------------------------------------------
+
+if __name__ == "__main__":
+    main()
 
 
 
