@@ -55,6 +55,5 @@ This DICOM image may need further processing with `GeDicomImport.py`.
 
 ## `GeDicomImport.py` ##
 
-This converts a given Xeleris DICOM file into a new file with fields modified
-for the data from a ROOT file. I think it reads an interfile for the data from
-ROOT, and outputs a DICOM.
+This produces a Xeleris compatible DICOM with provided pixel data and a few
+required changes to header fields.
