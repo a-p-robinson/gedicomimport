@@ -1,22 +1,21 @@
-"""
-# GeDicomImport.py                                                                        #
-# 30/01/17                                                                                #
-# andrew.robinson@npl.co.uk                                                               #
-#                                                                                         #
-# Import data into GE Xeleris system based on an exisiting GE Dicom file                  #
-#                                                                                         #
-# Usage:                                                                                  #
-#  python GeDicomImport -d new_dataset_name original_dicom_filename new_dicom_filename    #
-#  (python GeDicomImport -h for full list of options)                                     #
-#                                                                                         #
-# Requirements:                                                                           #
-#  [pydicom] sudo pip install pydicom                                                     #
-#   http://pydicom.readthedocs.io/en/stable/
-#
+"""GeDicomImport.py
+ 30/01/17
+ andrew.robinson@npl.co.uk
 
-Requires python 2.7 currently
+ Import data into GE Xeleris system based on an exisiting GE Dicom file
 
-Reformatted partially by EJP
+ Usage:
+  python GeDicomImport -d new_dataset_name original_dicom_filename new_dicom_filename
+  (python GeDicomImport -h for full list of options)
+
+ Requirements:
+  [pydicom <v1.0] sudo pip install pydicom
+  http://pydicom.readthedocs.io/en/stable/
+
+
+ Requires python 2.7 currently
+
+ Reformatted partially by EJP
 """
 
 import dicom
@@ -82,10 +81,10 @@ def readIFmatrix(filename):
 
     print "Matrix: "
     print dimensions
-    print "Data Type: " 
+    print "Data Type: "
     print dtype
     print "Binary data file: " + datafilename
-    
+
     return readInterFileData(datafilename, dimensions, dtype)
 #----------------------
 
@@ -205,7 +204,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
