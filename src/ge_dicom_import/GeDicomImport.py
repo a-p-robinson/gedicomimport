@@ -74,16 +74,16 @@ def readInterFileData(dataFileName, PixelDims, dtype):
 # Read in the matrix data from an interfile
 def readIFmatrix(filename):
 
-    print "Reading Interfile: " + filename
+    print("Reading Interfile: " + filename)
     dimensions, dataFile, dtype = readInterFileHeader(filename)
     words = re.split("(/)", filename)
     datafilename = ''.join(words[0:-1]) + dataFile
 
-    print "Matrix: "
-    print dimensions
-    print "Data Type: "
-    print dtype
-    print "Binary data file: " + datafilename
+    print("Matrix: ")
+    print(dimensions)
+    print("Data Type: ")
+    print(dtype)
+    print("Binary data file: " + datafilename)
 
     return readInterFileData(datafilename, dimensions, dtype)
 #----------------------
@@ -104,14 +104,14 @@ def changeDataName(datasetname, uid_offset=10):
     #new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset + randint(0,9)) # Add random number to UID
     new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset)
 
-    print "\n|Dataset Name|"
+    print("\n|Dataset Name|")
 
-    print ds[0x08,0x0018].value + " --> " + new_uid
-    print ds[0x33,0x1107].value + " --> " + new_uid
+    print(ds[0x08,0x0018].value + " --> " + new_uid)
+    print(ds[0x33,0x1107].value + " --> " + new_uid)
 
-    print ds[0x11,0x1012].value + " --> " + datasetname
-    print ds[0x11,0x1030].value + " --> " + datasetname
-    print ds[0x11,0x1050].value + " --> " + datasetname
+    print(ds[0x11,0x1012].value + " --> " + datasetname)
+    print(ds[0x11,0x1030].value + " --> " + datasetname)
+    print(ds[0x11,0x1050].value + " --> " + datasetname)
 
     # Change UIDs
     ds[0x08,0x0018].value = new_uid
@@ -137,12 +137,12 @@ def changeEnergyWindow(energy, energy_number=7):
     # [EM1] (0054, 0018) Energy Window Name                  SH: 'Y90_EM'     -> new          #
     ###########################################################################################
 
-    print "\n|Energy Window|"
+    print("\n|Energy Window|")
 
-    print str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value) + " --> " + energy[0]
-    print str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value) + " --> " + energy[1]
-    print ds[0x54,0x12].value[0][0x54,0x18].value + " --> " + ds[0x54,0x12].value[0][0x54,0x18].value + "-" + str(energy_number)
-    print str(ds[0x11,0x1016].value) + " --> " + str(energy_number)
+    print(str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value) + " --> " + energy[0])
+    print(str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value) + " --> " + energy[1])
+    print(ds[0x54,0x12].value[0][0x54,0x18].value + " --> " + ds[0x54,0x12].value[0][0x54,0x18].value + "-" + str(energy_number))
+    print(str(ds[0x11,0x1016].value) + " --> " + str(energy_number))
 
     ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = float(energy[0])
     ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = float(energy[1])
@@ -154,7 +154,7 @@ def changeEnergyWindow(energy, energy_number=7):
 # Change the pixel data of the dicom file
 def changePixelData(interfile):
 
-    print "\n|Pixel Data|"
+    print("\n|Pixel Data|")
     newPixelData = readIFmatrix(interfile)
 
     # Swap the array data
@@ -178,7 +178,7 @@ def main():
 
     #---------------------------------------------------
     # Process the file
-    print "\nReading DICOM file: " + args.dicomfile
+    print("\nReading DICOM file: " + args.dicomfile)
     ds = dicom.read_file(args.dicomfile)
 
     # Change the dataset name
@@ -198,7 +198,7 @@ def main():
         changePixelData(args.interfile)
 
     # Save file
-    print "\nSaving file: " + args.outputfile
+    print("\nSaving file: " + args.outputfile)
     ds.save_as(args.outputfile)
     #---------------------------------------------------
 
