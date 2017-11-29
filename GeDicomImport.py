@@ -89,8 +89,8 @@ def readIFmatrix(filename):
 def changeDataName(datasetname, uid_offset=10):
 
     ############################################################################################################################################################
-    # [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
-    # [EM1] (0008, 0018) SOP Instance UID                    UI: 1.2.840.113619.2.280.2.1.13072016173700324.423137180 -> .3 (or what ever is clear from SC)    #
+    # y[EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
+    # y[EM1] (0008, 0018) SOP Instance UID                    UI: 1.2.840.113619.2.280.2.1.13072016173700324.423137180 -> .3 (or what ever is clear from SC)    #
     # [EM1] (0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'                                                                               #
     # [EM1] (0011, 1030) [Picture Object Name]               LO: 'TOMO Liver_EM'                                                                               #
     # [EM1] (0011, 1050) [Where Object Name]                 LO: 'TOMO Liver_EM'                                                                               #
@@ -103,15 +103,15 @@ def changeDataName(datasetname, uid_offset=10):
     print "\n|Dataset Name|"
 
     print ds[0x08,0x0018].value + " --> " + new_uid
-    print ds[0x33,0x1107].value + " --> " + new_uid
+    #print ds[0x33,0x1107].value + " --> " + new_uid
 
-    print ds[0x11,0x1012].value + " --> " + datasetname
-    print ds[0x11,0x1030].value + " --> " + datasetname
-    print ds[0x11,0x1050].value + " --> " + datasetname
+    #print ds[0x11,0x1012].value + " --> " + datasetname
+    #print ds[0x11,0x1030].value + " --> " + datasetname
+    #print ds[0x11,0x1050].value + " --> " + datasetname
 
     # Change UIDs
     ds[0x08,0x0018].value = new_uid
-    ds[0x33,0x1107].value = new_uid
+    #ds[0x33,0x1107].value = new_uid
 
     # Change datset name
     ds[0x11,0x1012].value = datasetname
@@ -167,6 +167,7 @@ parser.add_argument("-d", "--datasetname", help="New dataset name")
 parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
 parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
 parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
+parser.add_argument("-s", "--straightswap", help="Just replace the data - do not modify header.")
 
 args = parser.parse_args()
 #---------------------------------------------------
@@ -175,22 +176,33 @@ args = parser.parse_args()
 # Process the file
 print "\nReading DICOM file: " + args.dicomfile
 ds = dicom.read_file(args.dicomfile)
+print ds
 
-# Change the dataset name
-if args.uid:
-    changeDataName(args.datasetname, args.uid)
-else:
-    changeDataName(args.datasetname)
+# Do a straight swap of the data
+if args.straightswap:
+    # Do a staright swap
+    print "\nStraight Swapping Data......"
+
+    if args.interfile:
+        changePixelData(args.interfile)
 
 # Modifiy the energy window if requested
-if args.energywindow and args.uid:
-    changeEnergyWindow(args.energywindow, args.uid)
-elif args.energywindow:
-    changeEnergyWindow(args.energywindow)
+else:
+    # Change the dataset name
+    if args.uid:
+        changeDataName(args.datasetname, args.uid)
+    else:
+        changeDataName(args.datasetname)
 
-# Change the pixel data is supplied
-if args.interfile:
-    changePixelData(args.interfile)
+    if args.energywindow and args.uid:
+        changeEnergyWindow(args.energywindow, args.uid)
+    elif args.energywindow:
+        changeEnergyWindow(args.energywindow)
+
+    # Change the pixel data is supplied
+    if args.interfile:
+        changePixelData(args.interfile)
+
 
 # Save file
 print "\nSaving file: " + args.outputfile
