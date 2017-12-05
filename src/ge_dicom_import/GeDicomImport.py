@@ -13,7 +13,7 @@
   http://pydicom.readthedocs.io/en/stable/
 
 
- Requires python 2.7 currently
+ Requires python 2.7 currently (due use of pydicom)
 
  Reformatted partially by EJP
 """
