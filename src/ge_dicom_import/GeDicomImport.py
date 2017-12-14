@@ -89,38 +89,55 @@ def readIFmatrix(filename):
 #----------------------
 
 #----------------------
-# Change the dataname and UID of the dicom file
+# 
 def changeDataName(datasetname, ds, uid_offset=10):
+    """Change the dataname and UID of the dicom file"""
 
-    ############################################################################################################################################################
+    ###########################################################################
     # [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
     # [EM1] (0008, 0018) SOP Instance UID                    UI: 1.2.840.113619.2.280.2.1.13072016173700324.423137180 -> .3 (or what ever is clear from SC)    #
     # [EM1] (0011, 1012) [Dataset Name]                      LO: 'TOMO Liver_EM'                                                                               #
     # [EM1] (0011, 1030) [Picture Object Name]               LO: 'TOMO Liver_EM'                                                                               #
     # [EM1] (0011, 1050) [Where Object Name]                 LO: 'TOMO Liver_EM'                                                                               #
+    # This field is in a different place in the Infinia and Discovery cameras
+    # Discovery:
     # [EM1] (0033, 1107) [Orig SOP Instance UID]             LO: '1.2.840.113619.2.280.2.1.13072016173700324.423137180' - > .3 (or what ever is clear from SC) #
-    ############################################################################################################################################################
+
+    # Infinia
+    # [EM1] (0033, 1007) [Orig SOP Instance UID]             LO: '1.2.840.113619.2.280.2.1.13072016173700324.423137180' - > .3 (or what ever is clear from SC) #
+
+    ##########################################################################
 
     #new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset + randint(0,9)) # Add random number to UID
-    new_uid = ds[0x08,0x0018].value + '.' + str(uid_offset)
+    new_uid = ds[0x08, 0x0018].value + '.' + str(uid_offset)
 
     print("\n|Dataset Name|")
 
-    print(ds[0x08,0x0018].value + " --> " + new_uid)
-    print(ds[0x33,0x1107].value + " --> " + new_uid)
+    print(ds[0x08, 0x0018].value + " --> " + new_uid)
+    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
+        print(ds[0x33, 0x1107].value + " --> " + new_uid)
+    elif ds[0x08, 0x1090].value == "INFINIA":
+        print(ds[0x33, 0x1007].value + " --> " + new_uid)
+    else:
+        print("Scanner does not seem to be a Discovery or Infinia")
+        print("This code assumes that tag [0008, 1090] exists")
+        exit(1)
 
-    print(ds[0x11,0x1012].value + " --> " + datasetname)
-    print(ds[0x11,0x1030].value + " --> " + datasetname)
-    print(ds[0x11,0x1050].value + " --> " + datasetname)
+    print(ds[0x11, 0x1012].value + " --> " + datasetname)
+    print(ds[0x11, 0x1030].value + " --> " + datasetname)
+    print(ds[0x11, 0x1050].value + " --> " + datasetname)
 
     # Change UIDs
-    ds[0x08,0x0018].value = new_uid
-    ds[0x33,0x1107].value = new_uid
+    ds[0x08, 0x0018].value = new_uid
+    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
+        ds[0x33, 0x1107].value = new_uid
+    elif ds[0x08, 0x1090].value == "INFINIA":
+        ds[0x33, 0x1007].value = new_uid
 
     # Change datset name
-    ds[0x11,0x1012].value = datasetname
-    ds[0x11,0x1050].value = datasetname
-    ds[0x11,0x1030].value = datasetname
+    ds[0x11, 0x1012].value = datasetname
+    ds[0x11, 0x1050].value = datasetname
+    ds[0x11, 0x1030].value = datasetname
 #----------------------
 
 #----------------------
@@ -139,15 +156,23 @@ def changeEnergyWindow(energy, ds, energy_number=7):
 
     print("\n|Energy Window|")
 
-    print(str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value) + " --> " + energy[0])
-    print(str(ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value) + " --> " + energy[1])
-    print(ds[0x54,0x12].value[0][0x54,0x18].value + " --> " + ds[0x54,0x12].value[0][0x54,0x18].value + "-" + str(energy_number))
-    print(str(ds[0x11,0x1016].value) + " --> " + str(energy_number))
+    print(str(ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0014].value) + " --> " + energy[0])
+    print(str(ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0015].value) + " --> " + energy[1])
 
-    ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0014].value = float(energy[0])
-    ds[0x54,0x12].value[0][0x54,0x13].value[0][0x54,0x0015].value = float(energy[1])
-    ds[0x54,0x12].value[0][0x54,0x18].value += "-" + str(energy_number)
-    ds[0x11,0x1016].value = int(energy_number)
+    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
+        print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
+    elif ds[0x08, 0x1090].value == "INFINIA":
+        print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
+    else:
+        print("Scanner does not seem to be a Discovery or Infinia")
+        print("This code assumes that tag [0008, 1090] exists")
+        exit(1)
+    print(str(ds[0x11, 0x1016].value) + " --> " + str(energy_number))
+
+    ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0014].value = float(energy[0])
+    ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0015].value = float(energy[1])
+    ds[0x54, 0x12].value[0][0x54, 0x18].value += "-" + str(energy_number)
+    ds[0x11, 0x1016].value = int(energy_number)
 #----------------------
 
 #----------------------
@@ -167,10 +192,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
     parser.add_argument("outputfile", help="Modified DICOM file")
+    parser.add_argument("datasetname", help="New dataset name")
 
-    parser.add_argument("-d", "--datasetname", help="New dataset name")
-    parser.add_argument("-e", "--energywindow", help="Low and High energy window values (keV)", nargs = 2)
-    parser.add_argument("-i", "--interfile", help="Interfile to replace pixel data with")
+    parser.add_argument("-e", "--energywindow",
+                        help="Low and High energy window values (keV)",
+                        nargs = 2)
+    parser.add_argument("-i", "--interfile",
+                        help="Interfile to replace pixel data with")
     parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
 
     args = parser.parse_args()
@@ -180,6 +208,7 @@ def main():
     # Process the file
     print("\nReading DICOM file: " + args.dicomfile)
     ds = dicom.read_file(args.dicomfile)
+    print(ds)
 
     # Change the dataset name
     if args.uid:
