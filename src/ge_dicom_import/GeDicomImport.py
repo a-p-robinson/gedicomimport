@@ -90,7 +90,7 @@ def readIFmatrix(filename):
 
 #----------------------
 # Change the dataname and UID of the dicom file
-def changeDataName(datasetname, uid_offset=10):
+def changeDataName(datasetname, ds, uid_offset=10):
 
     ############################################################################################################################################################
     # [EM1] (0008, 0013) Instance Creation Time              TM: '162936.0000' -> +2                                                                           #
@@ -126,7 +126,7 @@ def changeDataName(datasetname, uid_offset=10):
 #----------------------
 # Change the energy window of the dicom file
 #  Energy window number can be set manually to avoid overlapping
-def changeEnergyWindow(energy, energy_number=7):
+def changeEnergyWindow(energy, ds, energy_number=7):
 
     ###########################################################################################
     # [EM1] (0011, 1016) [Energy Number]                     SL: 1 -> 4 (or whatever is free) #
@@ -152,7 +152,7 @@ def changeEnergyWindow(energy, energy_number=7):
 
 #----------------------
 # Change the pixel data of the dicom file
-def changePixelData(interfile):
+def changePixelData(interfile, ds):
 
     print("\n|Pixel Data|")
     newPixelData = readIFmatrix(interfile)
@@ -183,19 +183,19 @@ def main():
 
     # Change the dataset name
     if args.uid:
-        changeDataName(args.datasetname, args.uid)
+        changeDataName(args.datasetname, ds, args.uid)
     else:
-        changeDataName(args.datasetname)
+        changeDataName(args.datasetname, ds)
 
     # Modifiy the energy window if requested
     if args.energywindow and args.uid:
-        changeEnergyWindow(args.energywindow, args.uid)
+        changeEnergyWindow(args.energywindow, ds, args.uid)
     elif args.energywindow:
-        changeEnergyWindow(args.energywindow)
+        changeEnergyWindow(args.energywindow, ds)
 
     # Change the pixel data if supplied
     if args.interfile:
-        changePixelData(args.interfile)
+        changePixelData(args.interfile, ds)
 
     # Save file
     print("\nSaving file: " + args.outputfile)
