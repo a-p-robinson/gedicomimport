@@ -208,7 +208,7 @@ def main():
     # Process the file
     print("\nReading DICOM file: " + args.dicomfile)
     ds = dicom.read_file(args.dicomfile)
-    print(ds)
+    #print(ds)
 
     # Change the dataset name
     if args.uid:
