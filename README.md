@@ -69,3 +69,9 @@ Optionally:
 + -e [energywindow]; New energy window bounds
 + -i [interfile]; A new interfile to replace the pixel data with
 + -u [uid]; A new UID for the file
+
+Note that if you include multiple files with the same uid then Xeleris thinks
+they are the same and only sees one.
+
+Also, if the datasetname is the same, then a '1' is appended to one of the data
+sets - making them hard to distinguish.
