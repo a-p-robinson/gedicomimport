@@ -113,10 +113,11 @@ def changeDataName(datasetname, ds, uid_offset=10):
 
     print("\n|Dataset Name|")
 
+    scanner_name = ds[0x08, 0x1090].value
     print(ds[0x08, 0x0018].value + " --> " + new_uid)
-    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
+    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
         print(ds[0x33, 0x1107].value + " --> " + new_uid)
-    elif ds[0x08, 0x1090].value == "INFINIA":
+    elif scanner_name == "INFINIA":
         print(ds[0x33, 0x1007].value + " --> " + new_uid)
     elif ds[0x08, 0x1090].value is not None:
         err_str = '''The scanner does not seem to be a Discovery or Infinia. I
