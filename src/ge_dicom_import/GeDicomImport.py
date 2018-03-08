@@ -118,9 +118,18 @@ def changeDataName(datasetname, ds, uid_offset=10):
         print(ds[0x33, 0x1107].value + " --> " + new_uid)
     elif ds[0x08, 0x1090].value == "INFINIA":
         print(ds[0x33, 0x1007].value + " --> " + new_uid)
+    elif ds[0x08, 0x1090].value is not None:
+        err_str = '''The scanner does not seem to be a Discovery or Infinia. I
+        think it is a {0}. I look for the scanner name in field \'[0008,
+        1090]\'.'''.format(ds[0x08, 0x1090].value)
+
+        print(err_str)
+        exit(1)
     else:
-        print("Scanner does not seem to be a Discovery or Infinia")
-        print("This code assumes that tag [0008, 1090] exists")
+        err_str = '''This code assumes that tag [0008, 1090] exists, but I
+        do not see it in the DICOM header!'''
+
+        print(err_str)
         exit(1)
 
     print(ds[0x11, 0x1012].value + " --> " + datasetname)
