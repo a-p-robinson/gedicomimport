@@ -113,36 +113,39 @@ def changeDataName(datasetname, ds, uid_offset=10):
 
     print("\n|Dataset Name|")
 
-    scanner_name = ds[0x08, 0x1090].value
-    print(ds[0x08, 0x0018].value + " --> " + new_uid)
-    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
-        print(ds[0x33, 0x1107].value + " --> " + new_uid)
-    elif scanner_name == "INFINIA":
-        print(ds[0x33, 0x1007].value + " --> " + new_uid)
-    elif ds[0x08, 0x1090].value is not None:
-        err_str = '''The scanner does not seem to be a Discovery or Infinia. I
-        think it is a {0}. I look for the scanner name in field \'[0008,
-        1090]\'.'''.format(ds[0x08, 0x1090].value)
-
-        print(err_str)
-        exit(1)
-    else:
+    try:
+        scanner_name = ds[0x08, 0x1090].value
+    except KeyError:
         err_str = '''This code assumes that tag [0008, 1090] exists, but I
         do not see it in the DICOM header!'''
 
         print(err_str)
         exit(1)
 
+
+    # Change UIDs
+    print(ds[0x08, 0x0018].value + " --> " + new_uid)
+    ds[0x08, 0x0018].value = new_uid
+
+    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
+        print(ds[0x33, 0x1107].value + " --> " + new_uid)
+        ds[0x33, 0x1107].value = new_uid
+    elif scanner_name == "INFINIA":
+        print(ds[0x33, 0x1007].value + " --> " + new_uid)
+        ds[0x33, 0x1007].value = new_uid
+    else:
+        err_str = '''The scanner does not seem to be a Discovery or Infinia. I
+        think it is a {0}. I look for the scanner name in field \'[0008,
+        1090]\'.'''.format(ds[0x08, 0x1090].value)
+
+        print(err_str)
+        exit(1)
+
+
     print(ds[0x11, 0x1012].value + " --> " + datasetname)
     print(ds[0x11, 0x1030].value + " --> " + datasetname)
     print(ds[0x11, 0x1050].value + " --> " + datasetname)
 
-    # Change UIDs
-    ds[0x08, 0x0018].value = new_uid
-    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
-        ds[0x33, 0x1107].value = new_uid
-    elif ds[0x08, 0x1090].value == "INFINIA":
-        ds[0x33, 0x1007].value = new_uid
 
     # Change datset name
     ds[0x11, 0x1012].value = datasetname
@@ -169,14 +172,28 @@ def changeEnergyWindow(energy, ds, energy_number=7):
     print(str(ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0014].value) + " --> " + energy[0])
     print(str(ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0015].value) + " --> " + energy[1])
 
-    if ds[0x08, 0x1090].value == "Tandem_Discovery_670":
+    try:
+        scanner_name = ds[0x08, 0x1090].value
+    except KeyError:
+        err_str = '''This code assumes that tag [0008, 1090] exists, but I
+        do not see it in the DICOM header!'''
+
+        print(err_str)
+        exit(1)
+
+
+    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
         print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
-    elif ds[0x08, 0x1090].value == "INFINIA":
+    elif scanner_name == "INFINIA":
         print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
     else:
-        print("Scanner does not seem to be a Discovery or Infinia")
-        print("This code assumes that tag [0008, 1090] exists")
+        err_str = '''The scanner does not seem to be a Discovery or Infinia. I
+        think it is a {0}. I look for the scanner name in field \'[0008,
+        1090]\'.'''.format(ds[0x08, 0x1090].value)
+
+        print(err_str)
         exit(1)
+
     print(str(ds[0x11, 0x1016].value) + " --> " + str(energy_number))
 
     ds[0x54, 0x12].value[0][0x54, 0x13].value[0][0x54, 0x0014].value = float(energy[0])
