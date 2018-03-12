@@ -127,7 +127,7 @@ def changeDataName(datasetname, ds, uid_offset=10):
     print(ds[0x08, 0x0018].value + " --> " + new_uid)
     ds[0x08, 0x0018].value = new_uid
 
-    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
+    if scanner_name == "Tandem_Discovery_670" or scanner_name == "Tandem_Discovery_670_Pro":
         print(ds[0x33, 0x1107].value + " --> " + new_uid)
         ds[0x33, 0x1107].value = new_uid
     elif scanner_name == "INFINIA":
@@ -182,7 +182,7 @@ def changeEnergyWindow(energy, ds, energy_number=7):
         exit(1)
 
 
-    if scanner_name == "Tandem_Discovery_670" || scanner_name == "Tandem_Discovery_670_Pro":
+    if scanner_name == "Tandem_Discovery_670" or scanner_name == "Tandem_Discovery_670_Pro":
         print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
     elif scanner_name == "INFINIA":
         print(ds[0x54, 0x12].value[0][0x54, 0x18].value + " --> " + ds[0x54, 0x12].value[0][0x54, 0x18].value + "-" + str(energy_number))
