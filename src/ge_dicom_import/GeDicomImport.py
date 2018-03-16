@@ -23,10 +23,29 @@ import argparse
 import re
 import numpy as np
 from random import randint
+import collections
+
+class validate_interfile(argparse.Action):
+    """Magic class from StackOverflow to let an optional argument with two args
+    have set choices.
+
+    Source:
+    https://stackoverflow.com/questions/8624034/python-argparse-type-and-choice-restrictions-with-nargs-1 """
+
+    def __call__(self, parser, args, values, option_string=None):
+        valid_image_types = ('projection', 'reconstructed')
+        image, image_type = values
+        if image_type not in valid_image_types:
+            raise ValueError('invalid image type {s!r}'.format(s=image_type))
+
+
+        interfile = collections.namedtuple('file name', 'image type')
+        setattr(args, self.dest, interfile(image, image_type))
 
 #----------------------
 # Read the data filename, matrix dimensions and data type from an interfile header
-def readInterFileHeader(inputFileName):
+def readInterFileHeader(inputFileName, image_type):
+
     inFile = open(inputFileName, 'r')
     for line in inFile:
         if re.search("matrix size \[1\]", line):
@@ -37,10 +56,16 @@ def readInterFileHeader(inputFileName):
             line = line.rstrip('\n\r')
             words = re.split("=", line)
             y =  words[1]
-        if re.search("number of projections", line):
-            line = line.rstrip('\n\r')
-            words = re.split("=", line)
-            z =  words[1]
+        if image_type == "projections":
+            if re.search("number of projections", line):
+                line = line.rstrip('\n\r')
+                words = re.split("=", line)
+                z =  words[1]
+        elif image_type == "reconstructed":
+            if re.search("number of images this frame group", line):
+                line = line.rstrip('\n\r')
+                words = re.split("=", line)
+                z =  words[1]
         if re.search("name of data file", line):
             line = line.rstrip('\n\r')
             words = re.split("=", line)
@@ -72,10 +97,10 @@ def readInterFileData(dataFileName, PixelDims, dtype):
 
 #----------------------
 # Read in the matrix data from an interfile
-def readIFmatrix(filename):
+def readIFmatrix(filename, image_type):
 
     print("Reading Interfile: " + filename)
-    dimensions, dataFile, dtype = readInterFileHeader(filename)
+    dimensions, dataFile, dtype = readInterFileHeader(filename, image_type)
     words = re.split("(/)", filename)
     datafilename = ''.join(words[0:-1]) + dataFile
 
@@ -85,7 +110,7 @@ def readIFmatrix(filename):
     print(dtype)
     print("Binary data file: " + datafilename)
 
-    return readInterFileData(datafilename, dimensions, dtype)
+    return readInterFileData(datafilename, dimensions, dtype), dtype
 #----------------------
 
 #----------------------
@@ -204,10 +229,17 @@ def changeEnergyWindow(energy, ds, energy_number=7):
 
 #----------------------
 # Change the pixel data of the dicom file
-def changePixelData(interfile, ds):
+def changePixelData(interfile, ds, image_type):
 
     print("\n|Pixel Data|")
-    newPixelData = readIFmatrix(interfile)
+    newPixelData, dtype = readIFmatrix(interfile, image_type)
+
+    # Set the dicom to have the same signedness as the interfile
+    # Set field (0028,0103) to: 0 for unsigned, 1 for signed
+    if dtype == np.uint16:
+        ds[0x28, 0x103].value = 0
+    if dtype == np.int16:
+        ds[0x28, 0x103].value = 1
 
     # Swap the array data
     ds.PixelData = newPixelData.tostring() # Have to write as raw data
@@ -225,6 +257,10 @@ def get_args():
                         nargs = 2)
     parser.add_argument("-i", "--interfile",
                         help="Interfile to replace pixel data with")
+    parser.add_argument("-t", "--image_type",
+                        default="projections",
+                        choices="['projections', 'reconstructed']",
+                        help="The type of image used")
     parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
 
     return parser.parse_args()
@@ -232,6 +268,7 @@ def get_args():
 def main():
 
     args = get_args()
+    print(args.image_type)
 
     # Process the file
     print("\nReading DICOM file: " + args.dicomfile)
@@ -252,7 +289,7 @@ def main():
 
     # Change the pixel data if supplied
     if args.interfile:
-        changePixelData(args.interfile, ds)
+        changePixelData(args.interfile, ds, args.image_type)
 
     # Save file
     print("\nSaving file: " + args.outputfile)

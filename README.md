@@ -69,6 +69,8 @@ Optionally:
 + -e [energywindow]; New energy window bounds
 + -i [interfile]; A new interfile to replace the pixel data with
 + -u [uid]; A new UID for the file
++ -t [image type]: The type of the image - Reconstructed or projections. This
+  defaults to projections for backwards compatibility.
 
 Note that if you include multiple files with the same uid then Xeleris thinks
 they are the same and only sees one.
