@@ -60,12 +60,12 @@ required changes to header fields.
 
 Takes as arguments:
 
-+ An original DICOM file to copy and modify
-+ The name of the new DICOM file to write
++ An original DICOM file to copy and modify.
++ The name of the new DICOM file to write.
++ A new name of the dataset to put in the header.
 
 Optionally:
 
-+ -d [datasetname]; A new data set name to put in the header
 + -e [energywindow]; New energy window bounds
 + -i [interfile]; A new interfile to replace the pixel data with
 + -u [uid]; A new UID for the file
