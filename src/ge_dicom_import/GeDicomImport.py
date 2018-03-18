@@ -247,7 +247,9 @@ def changePixelData(interfile, ds, image_type):
 
 def get_args():
     """Parse the arguments"""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="""Edit certain fields of a
+    DICOM header in a new file. Optionally, replace the pixel data with that
+    from an interfile.""")
     parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
     parser.add_argument("outputfile", help="Modified DICOM file")
     parser.add_argument("datasetname", help="New dataset name")
