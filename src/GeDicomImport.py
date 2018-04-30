@@ -250,19 +250,25 @@ def get_args():
     parser = argparse.ArgumentParser(description="""Edit certain fields of a
     DICOM header in a new file. Optionally, replace the pixel data with that
     from an interfile.""")
+
     parser.add_argument("dicomfile", help="Original GE Xelris DICOM file")
     parser.add_argument("outputfile", help="Modified DICOM file")
-    parser.add_argument("datasetname", help="New dataset name")
+
+    parser.add_argument("-d", "--datasetname",
+                        help="New dataset name")
 
     parser.add_argument("-e", "--energywindow",
                         help="Low and High energy window values (keV)",
                         nargs = 2)
+    
     parser.add_argument("-i", "--interfile",
                         help="Interfile to replace pixel data with")
+
     parser.add_argument("-t", "--image_type",
                         default="projections",
                         choices="['projections', 'reconstructed']",
                         help="The type of image used")
+
     parser.add_argument("-u", "--uid", help="Specify file specific UID (single number)")
 
     return parser.parse_args()
