@@ -61,6 +61,11 @@ def readInterFileHeader(inputFileName, image_type):
                 line = line.rstrip('\n\r')
                 words = re.split("=", line)
                 z =  words[1]
+            elif re.search("number of images this frame group", line):
+                line = line.rstrip('\n\r')
+                words = re.split("=", line)
+                z =  words[1]
+                
         elif image_type == "reconstructed":
             if re.search("number of images this frame group", line):
                 line = line.rstrip('\n\r')
