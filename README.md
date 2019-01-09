@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## `GeDicomImport.py` ##
 
 This produces a Xeleris compatible DICOM with provided pixel data and a few
@@ -22,3 +23,9 @@ they are the same and only sees one.
 
 Also, if the datasetname is the same, then a '1' is appended to one of the data
 sets - making them hard to distinguish.
+=======
+# gedicomimport
+
+Modify GE Dicom files for reimport to Xeleris
+
+>>>>>>> 18adb01f6912432cc12c338ebb65575d7e438012
